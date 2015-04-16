@@ -30,6 +30,8 @@ $SPEC{fatpack_info} = {
 sub fatpack_info {
     my %args = @_;
 
+    my $fatpack_sig_found;
+
     my $in_fatpacked;
     my $module;
     my $end_marker;
@@ -40,12 +42,14 @@ sub fatpack_info {
         if ($in_fatpacked) {
             if (/^\Q$end_marker\E$/) {
                 $in_fatpacked = 0;
+                next;
             } else {
                 s/^  //;
                 $tot_lines++;
                 $tot_bytes += length;
                 $modules{$module}{lines}++;
                 $modules{$module}{bytes} += length;
+                next;
             }
         } else {
             if (/^\$fatpacked\{"(.+?)"\} = .+<<'(.+)';$/) {
@@ -54,7 +58,15 @@ sub fatpack_info {
                 $end_marker = $2;
                 next;
             }
+            if (/^my \%fatpacked;/) {
+                $fatpack_sig_found++;
+                next;
+            }
         }
+    }
+
+    if (!$fatpack_sig_found && !%modules) {
+        return [412, "File content does not seem like a fatpacked script"];
     }
 
     my $res;
