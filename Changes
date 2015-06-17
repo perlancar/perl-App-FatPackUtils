@@ -1,5 +1,10 @@
 Revision history for App-FatPackUtils
 
+0.02    2015-06-17 (PERLANCAR)
+
+	- Add script: fatpack-modules.
+
+
 0.01    2015-04-16 (PERLANCAR)
 
         - First release.
