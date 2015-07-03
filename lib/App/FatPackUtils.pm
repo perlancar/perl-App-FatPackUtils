@@ -18,6 +18,8 @@ L<App::FatPacker>:
 
 =head1 SEE ALSO
 
-L<App::FatPacker>, L<App::fatten>
+L<App::FatPacker>, L<Module::FatPack>
+
+L<App::depak>
 
 =cut
