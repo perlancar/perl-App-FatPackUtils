@@ -17,9 +17,17 @@ $SPEC{fatpack_info} = {
     args => {
         script => {
             schema => 'str*',
+            'x.schema.entity' => 'filename',
             req => 1,
             pos => 0,
-            cmdline_src => 'stdin_or_file',
+            completion => sub {
+                require Complete::Program;
+
+                my %args = @_;
+                my $word = $args{word};
+
+                Complete::Program::complete_program(word => $word);
+            },
         },
         list_modules => {
             schema => ['bool' => is=>1],
@@ -36,7 +44,17 @@ $SPEC{fatpack_info} = {
     },
 };
 sub fatpack_info {
+    require File::Which;
+
     my %args = @_;
+
+    my $script = $args{script};
+    unless (-f $script) {
+        $script = File::Which::which($script);
+        return [400, "No such script '$script'"] unless $script;
+    }
+    open my($fh), "<", $script
+        or return [500, "Can't open script '$script': $!"];
 
     my $fatpack_sig_found;
 
@@ -48,7 +66,8 @@ sub fatpack_info {
     my $tot_bytes;
     my $cur_content;
     my $temp_filename;
-    for (split /^/, $args{script}) {
+
+    for (<$fh>) {
         if ($in_fatpacked) {
             if (/^\Q$end_marker\E$/) {
                 $in_fatpacked = 0;
@@ -58,7 +77,7 @@ sub fatpack_info {
                     unless ($temp_filename) {
                         (undef, $temp_filename) = File::Temp::tempfile();
                     }
-                    File::Slurper::write_text($temp_filename, $cur_content);
+                    File::Slurper::write_binary($temp_filename, $cur_content);
                     $modules{$module}{version} =
                         MM->parse_version($temp_filename);
                 }
