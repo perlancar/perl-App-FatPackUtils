@@ -7,6 +7,7 @@ use 5.010;
 use strict;
 use warnings;
 
+use ExtUtils::MakeMaker;
 use Perinci::CmdLine::Any;
 
 our %SPEC;
@@ -25,6 +26,13 @@ $SPEC{fatpack_info} = {
             cmdline_aliases => {l=>{}},
             tags => ['category:action'],
         },
+        show_module_version => {
+            schema => ['bool' => is=>1],
+            cmdline_aliases => {V=>{}},
+        },
+    },
+    args_rels => {
+        dep_all => [show_module_version => ['list_modules']],
     },
 };
 sub fatpack_info {
@@ -38,10 +46,23 @@ sub fatpack_info {
     my %modules;
     my $tot_lines;
     my $tot_bytes;
+    my $cur_content;
+    my $temp_filename;
     for (split /^/, $args{script}) {
         if ($in_fatpacked) {
             if (/^\Q$end_marker\E$/) {
                 $in_fatpacked = 0;
+                if (defined($cur_content) && $args{show_module_version}) {
+                    require File::Slurper;
+                    require File::Temp;
+                    unless ($temp_filename) {
+                        (undef, $temp_filename) = File::Temp::tempfile();
+                    }
+                    File::Slurper::write_text($temp_filename, $cur_content);
+                    $modules{$module}{version} =
+                        MM->parse_version($temp_filename);
+                }
+                $cur_content = '';
                 next;
             } else {
                 s/^  //;
@@ -49,6 +70,7 @@ sub fatpack_info {
                 $tot_bytes += length;
                 $modules{$module}{lines}++;
                 $modules{$module}{bytes} += length;
+                $cur_content .= $_;
                 next;
             }
         } else {
@@ -73,9 +95,13 @@ sub fatpack_info {
 
     if ($args{list_modules}) {
         $res = [];
-        for (sort keys %modules) {
-            s/\.pm$//; s!/!::!g;
-            push @$res, $_;
+        for my $k (sort keys %modules) {
+            my $mod = $k; $mod =~ s/\.pm$//; $mod =~ s!/!::!g;
+            if ($args{show_module_version}) {
+                push @$res, "$mod\t" . $modules{$k}{version};
+            } else {
+                push @$res, $mod;
+            }
         }
     } else {
         $res = {
@@ -99,5 +125,7 @@ Perinci::CmdLine::Any->new(
 =head1 SYNOPSIS
 
  % fatpack-info /tmp/script.fatpack
+
+ % fatpack-info -lV `which fatpacked-script`
 
 =cut
