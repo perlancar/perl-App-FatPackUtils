@@ -124,7 +124,7 @@ sub fatpack_info {
         }
     } else {
         $res = {
-            file_size => length($args{script}),
+            file_size => (-s $script),
             modules => \%modules,
             tot_fatpacked_lines => $tot_lines,
             tot_fatpacked_bytes => $tot_bytes,
