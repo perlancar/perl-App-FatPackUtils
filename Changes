@@ -1,5 +1,12 @@
 Revision history for App-FatPackUtils
 
+0.06    2016-02-06 (PERLANCAR)
+
+	- fatpack-info: Now can search script in PATH.
+
+	- fatpack-info: Add option --show-module-version (-V).
+
+
 0.05    2016-01-18 (PERLANCAR)
 
         - No functional changes.
