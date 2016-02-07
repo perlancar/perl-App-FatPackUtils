@@ -42,6 +42,22 @@ $SPEC{fatpack_info} = {
     args_rels => {
         dep_all => [show_module_version => ['list_modules']],
     },
+    examples => [
+        {
+            summary => 'Show total size of script and fatpack contents',
+            src => 'fatpack-info /tmp/script.fatpack',
+            src_plang => 'bash',
+            test => 0,
+            'x.doc.show_result' => 0,
+        },
+        {
+            summary => 'Show list of fatpacked modules (-l) along with their versions (-V)',
+            src => 'fatpack-info -lV `which fatpacked-script`',
+            src_plang => 'bash',
+            test => 0,
+            'x.doc.show_result' => 0,
+        },
+    ],
 };
 sub fatpack_info {
     require File::Which;
