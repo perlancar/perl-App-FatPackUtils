@@ -60,11 +60,10 @@ sub update_fatpack_snippets {
         my $orig_content = $content;
 
         my $code_gen_snippet = sub {
-            my @mods = @_;
-            for (@mods) { s/\.pm\z//; s!/!::!g }
+            my @mod_pms = @_;
 
             my $res = Module::FatPack::fatpack_modules(
-                module_names => \@mods,
+                module_names => \@mod_pms,
                 pm => 1,
                 stripper => 1,
             );
