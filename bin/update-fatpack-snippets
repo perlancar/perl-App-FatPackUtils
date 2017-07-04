@@ -6,7 +6,7 @@
 use 5.010;
 use strict;
 use warnings;
-use Log::Any::IfLOG '$log';
+use Log::ger;
 
 use Perinci::Object;
 use Perinci::CmdLine::Any;
@@ -52,7 +52,7 @@ sub update_fatpack_snippets {
 
     for my $filename (@$filenames) {
         unless (-f $filename) {
-            $log->warnf("File %s does not exist, skipped", $filename);
+            log_warn("File %s does not exist, skipped", $filename);
             $envres->add_result(404, "File does not exist", {item_id=>$filename});
             next;
         }
@@ -68,8 +68,9 @@ sub update_fatpack_snippets {
                 stripper => 1,
             );
 
-            die "Can't generate fatpack code for [", join(" ", @mods), "]: $res->[0] - $res->[1]"
-                unless $res->[0] == 200;
+            die "Can't generate fatpack code for [" . join(" ", @mod_pms) .
+                "]: $res->[0] - $res->[1]"
+                    unless $res->[0] == 200;
 
             # remove extraneous newlines
             $res->[2] =~ s/^(# END OF FATPACK CODE\n)\n+/$1/m;
