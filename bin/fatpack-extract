@@ -1,0 +1,113 @@
+#!perl
+
+# DATE
+# VERSION
+
+use 5.010;
+use strict;
+use warnings;
+use Log::ger;
+
+use Perinci::CmdLine::Any;
+
+our %SPEC;
+$SPEC{fatpack_extract} = {
+    v => 1.1,
+    summary => 'Extract contents of fatpacked script',
+    args => {
+        script => {
+            schema => 'str*',
+            'x.schema.entity' => 'filename',
+            req => 1,
+            pos => 0,
+            completion => sub {
+                require Complete::Program;
+
+                my %args = @_;
+                my $word = $args{word};
+
+                Complete::Program::complete_program(word => $word);
+            },
+        },
+        # XXX include file, include pattern
+        # XXX exclude file, exclude pattern
+    },
+    features => {
+        dry_run => 1,
+    },
+    examples => [
+    ],
+};
+sub fatpack_extract {
+    require File::Path;
+    require File::Slurper;
+    require File::Which;
+
+    my %args = @_;
+
+    my $script = $args{script};
+    unless (-f $script) {
+        $script = File::Which::which($script);
+        return [400, "No such script '$script'"] unless $script;
+    }
+    open my($fh), "<", $script
+        or return [500, "Can't open script '$script': $!"];
+
+    my $fatpack_sig_found;
+    my $in_fatpacked;
+    my $module;
+    my $end_marker;
+    my $cur_content;
+
+    for (<$fh>) {
+        if ($in_fatpacked) {
+            if (/^\Q$end_marker\E$/) {
+                $in_fatpacked = 0;
+                if (defined $cur_content) {
+                    if ($args{-dry_run}) {
+                        log_warn("[DRY-RUN] Extracting %s ...", $module);
+                    } else {
+                        my ($dir) = $module =~ m!(.+)/!;
+                        if (defined $dir) {
+                            log_info("Creating directory %s ...", $dir);
+                            File::Path::make_path($dir);
+                        }
+                        log_info("Extracting %s ...", $module);
+                        File::Slurper::write_text($module, $cur_content);
+                    }
+                }
+                $cur_content = '';
+                next;
+            } else {
+                s/^  //;
+                $cur_content .= $_;
+                next;
+            }
+        } else {
+            if (/^\$fatpacked\{"(.+?)"\} = .+<<'(.+)';$/) {
+                $in_fatpacked++;
+                $module = $1;
+                $end_marker = $2;
+                next;
+            }
+            if (/^my \%fatpacked;/) {
+                $fatpack_sig_found++;
+                next;
+            }
+        }
+    }
+
+    if (!$fatpack_sig_found) {
+        return [412, "File content does not seem like a fatpacked script"];
+    }
+
+    [200];
+}
+
+Perinci::CmdLine::Any->new(
+    url => '/main/fatpack_extract',
+    log => 1,
+)->run;
+
+# ABSTRACT:
+# PODNAME:
