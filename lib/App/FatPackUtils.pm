@@ -6,12 +6,12 @@ package App::FatPackUtils;
 use 5.010001;
 
 1;
-# ABSTRACT: Collection of CLI utilities related to App::FatPacker
+# ABSTRACT: Collection of CLI utilities related to fatpacking
 
 =head1 DESCRIPTION
 
 This distribution provides the following command-line utilities related to
-L<App::FatPacker>:
+fatpacking:
 
 #INSERT_EXECS_LIST
 
