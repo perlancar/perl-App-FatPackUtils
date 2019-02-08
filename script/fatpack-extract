@@ -84,14 +84,11 @@ sub fatpack_extract {
                 next;
             }
         } else {
-            if (/^\$fatpacked\{"(.+?)"\} = .+<<'(.+)';$/) {
+            if (/^\s*\$(?:main::)?fatpacked\{"(.+?)"\} = .+<<'(.+)';$/) {
+                $fatpack_sig_found++;
                 $in_fatpacked++;
                 $module = $1;
                 $end_marker = $2;
-                next;
-            }
-            if (/^my \%fatpacked;/) {
-                $fatpack_sig_found++;
                 next;
             }
         }

@@ -110,13 +110,10 @@ sub fatpack_info {
             }
         } else {
             if (/^\s*\$(?:main::)?fatpacked\{"(.+?)"\} = .+<<'(.+)';$/) {
+                $fatpack_sig_found++;
                 $in_fatpacked++;
                 $module = $1;
                 $end_marker = $2;
-                next;
-            }
-            if (/^my \%fatpacked;|^\s*\$main::fatpacked\{/) {
-                $fatpack_sig_found++;
                 next;
             }
         }
