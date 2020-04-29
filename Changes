@@ -1,3 +1,9 @@
+0.121   2020-04-30  Released-By: PERLANCAR; Urgency: low
+
+	- Tweak Rinci metadata: replace deprecated
+	  x.schema.{,element_}entity with more specific schema.
+
+
 0.120   2019-02-08  Released-By: PERLANCAR
 
 	- Also recognize scripts produced by Module::FatPack.
